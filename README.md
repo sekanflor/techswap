@@ -2,6 +2,53 @@
 
 TechSwap is a Django-based API for managing user profiles, PC component listings, and swap requests.
 
+## Rate Limiting
+
+All API endpoints are rate limited to **100 requests per minute per IP address**. If you exceed this limit, you will receive a 429 Too Many Requests response with the following format:
+
+```json
+{
+    "error": "Rate limit exceeded",
+    "message": "Too many requests. Please try again in X seconds."
+}
+```
+
+### How to Test Rate Limiting
+
+#### Using Postman
+1. **Get a JWT Token**
+   - Send a `POST` request to `http://localhost:8000/api/token/` with body:
+     ```json
+     {
+         "username": "your_username",
+         "password": "your_password"
+     }
+     ```
+   - Copy the `access` token from the response.
+2. **Create a GET request** to `http://localhost:8000/api/user-profiles/`.
+   - Add headers:
+     - `Authorization: Bearer <your_token>`
+     - `Content-Type: application/json`
+3. **Save the request to a collection**.
+4. **Open the Collection Runner** (Runner button or Ctrl+R).
+   - Set Iterations to 101
+   - Set Delay to 100 ms
+   - Click Run
+5. **Observe the results**:
+   - The first 100 requests should return status 200
+   - The 101st request should return status 429 with the error message
+
+#### Troubleshooting
+- If you never see a 429 error:
+  - Make sure you are not restarting the Django server during the test
+  - Ensure you are using the same IP address for all requests (localhost/127.0.0.1)
+  - If using Django's default cache, it may reset on server restart. For production, use Redis or Memcached.
+  - Try lowering the limit in the decorator for testing (e.g., `requests=5`)
+- If you see a 429 error, but not the expected JSON:
+  - Make sure the decorator uses `JsonResponse` as shown in the codebase
+
+---
+
 ## Authentication
 
 Use JWT for all endpoints.
