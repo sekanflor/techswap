@@ -2,6 +2,63 @@
 
 TechSwap is a Django-based API for managing user profiles, PC component listings, and swap requests.
 
+---
+
+## Table of Contents
+- [Setup](#setup)
+- [Rate Limiting](#rate-limiting)
+- [Authentication](#authentication)
+- [Endpoints](#endpoints)
+  - [UserProfile](#userprofile)
+  - [Listings](#listings)
+  - [SwapRequests](#swaprequests)
+- [File Upload](#file-upload)
+- [Using Postman](#using-postman)
+- [Troubleshooting](#troubleshooting)
+- [Admin Panel](#admin-panel)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
+
+## Setup
+
+1. **Clone the repository:**
+   ```bash
+   git clone <your-repo-url>
+   cd techswap
+   ```
+2. **Create a virtual environment and activate it:**
+   ```bash
+   python -m venv venv
+   # On Windows:
+   venv\Scripts\activate
+   # On Mac/Linux:
+   source venv/bin/activate
+   ```
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   pip install Pillow
+   ```
+4. **Configure your database settings in `techswap/settings.py` if needed.**
+5. **Run migrations:**
+   ```bash
+   python manage.py makemigrations
+   python manage.py migrate
+   ```
+6. **Create a superuser (optional, for admin access):**
+   ```bash
+   python manage.py createsuperuser
+   ```
+7. **Start the development server:**
+   ```bash
+   python manage.py runserver
+   ```
+8. **Access the API at** `http://localhost:8000/`
+
+---
+
 ## Rate Limiting
 
 All API endpoints are rate limited to **100 requests per minute per IP address**. If you exceed this limit, you will receive a 429 Too Many Requests response with the following format:
@@ -377,3 +434,83 @@ Use JWT for all endpoints.
 ---
 
 For more details, see the code and comments in each endpoint or contact the project maintainer.
+
+## File Upload
+
+The API supports profile photo uploads with the following specifications:
+- Maximum file size: 2MB
+- Allowed file types: JPEG, PNG, WebP
+- Images are automatically cropped to a 1:1 aspect ratio
+
+### Profile Photo Upload
+
+#### Update Profile with Photo
+**PUT** `/api/user-profiles/<id>/`
+
+**Headers:**
+- `Authorization: Bearer <access_token>`
+- `Content-Type: multipart/form-data`
+
+**Body:**
+```json
+{
+    "bio": "Updated bio",
+    "location": "Updated location",
+    "photo": <file>
+}
+```
+
+**Response:**
+```json
+{
+    "id": 1,
+    "user": 1,
+    "bio": "Updated bio",
+    "location": "Updated location",
+    "photo": "/media/profile_photos/photo.jpg"
+}
+```
+
+#### Create Profile with Photo
+**POST** `/api/user-profiles/`
+
+**Headers:**
+- `Authorization: Bearer <access_token>`
+- `Content-Type: multipart/form-data`
+
+**Body:**
+```json
+{
+    "user": 1,
+    "bio": "New bio",
+    "location": "New location",
+    "photo": <file>
+}
+```
+
+**Response:**
+```json
+{
+    "id": 2,
+    "user": 1,
+    "bio": "New bio",
+    "location": "New location",
+    "photo": "/media/profile_photos/photo.jpg"
+}
+```
+
+## Contributing
+
+Contributions are welcome! Please fork the repository and submit a pull request. For major changes, open an issue first to discuss what you would like to change.
+
+1. Fork the repo
+2. Create your feature branch (`git checkout -b feature/YourFeature`)
+3. Commit your changes (`git commit -am 'Add some feature'`)
+4. Push to the branch (`git push origin feature/YourFeature`)
+5. Open a pull request
+
+---
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
