@@ -4,6 +4,19 @@ TechSwap is a Django-based API for managing user profiles, PC component listings
 
 ---
 
+## Demo Superuser Account
+
+For easy access during testing and grading, use the following superuser credentials:
+
+```
+Username: pc01
+Password: ase12345
+```
+
+> **Note:** These credentials are for demo/testing purposes only.
+
+---
+
 ## Table of Contents
 - [Setup](#setup)
 - [Rate Limiting](#rate-limiting)
