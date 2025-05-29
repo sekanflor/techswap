@@ -74,7 +74,7 @@ Password: ase12345
 
 ## Rate Limiting
 
-All API endpoints are rate limited to **100 requests per minute per IP address**. If you exceed this limit, you will receive a 429 Too Many Requests response with the following format:
+All API endpoints are rate limited to **10 requests per minute per IP address**. If you exceed this limit, you will receive a 429 Too Many Requests response with the following format:
 
 ```json
 {
@@ -101,12 +101,13 @@ All API endpoints are rate limited to **100 requests per minute per IP address**
      - `Content-Type: application/json`
 3. **Save the request to a collection**.
 4. **Open the Collection Runner** (Runner button or Ctrl+R).
-   - Set Iterations to 101
+   - Set Iterations to 11
    - Set Delay to 100 ms
    - Click Run
 5. **Observe the results**:
-   - The first 100 requests should return status 200
-   - The 101st request should return status 429 with the error message
+   - The first 10 requests should return status 200
+   - The 11th request should return status 429 with the error message
+   - To view the error message, click on the 429 result in the Collection Runner and check the response body panel.
 
 #### Troubleshooting
 - If you never see a 429 error:
@@ -116,6 +117,7 @@ All API endpoints are rate limited to **100 requests per minute per IP address**
   - Try lowering the limit in the decorator for testing (e.g., `requests=5`)
 - If you see a 429 error, but not the expected JSON:
   - Make sure the decorator uses `JsonResponse` as shown in the codebase
+  - In Postman, click the 429 request in the Collection Runner to view the full error message in the response body.
 
 ---
 
