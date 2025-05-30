@@ -9,7 +9,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    @rate_limit(requests=100, window=60)  # 100 requests per minute
+    @rate_limit(requests=10, window=60)  # 10 requests per minute
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
 
@@ -18,7 +18,7 @@ class ListingViewSet(viewsets.ModelViewSet):
     serializer_class = ListingSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    @rate_limit(requests=100, window=60)  # 100 requests per minute
+    @rate_limit(requests=10, window=60)  # 10 requests per minute
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
 
@@ -27,6 +27,6 @@ class SwapRequestViewSet(viewsets.ModelViewSet):
     serializer_class = SwapRequestSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    @rate_limit(requests=100, window=60)  # 100 requests per minute
+    @rate_limit(requests=10, window=60)  # 10 requests per minute
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
