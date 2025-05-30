@@ -1,531 +1,162 @@
-# TechSwap API
+# TechSwap - Item Trading Platform
 
-TechSwap is a Django-based API for managing user profiles, PC component listings, and swap requests.
+TechSwap is a Django REST Framework-based platform that allows users to trade items with each other. The platform includes features for user authentication, item listings, and swap requests.
 
----
+## Features
 
-## Demo Superuser Account
+### Authentication System
+- User registration with email verification
+- JWT-based authentication
+- Secure password hashing
+- Protected routes for authenticated users
+- Token refresh mechanism
 
-For easy access during testing and grading, use the following superuser credentials:
+### User Management
+- User profiles with customizable information
+- Profile photo upload support
+- Location-based user search
 
-```
-Username: pc01
-Password: ase12345
-```
+### Item Listings
+- Create, read, update, and delete item listings
+- Image upload for items
+- Search and filter listings
+- Rate limiting for API endpoints
 
-> **Note:** These credentials are for demo/testing purposes only.
+### Swap Requests
+- Create and manage swap requests
+- Accept or reject swap proposals
+- Track swap request status
 
----
+## API Endpoints
 
-## Table of Contents
-- [Setup](#setup)
-- [Rate Limiting](#rate-limiting)
-- [Authentication](#authentication)
-- [Endpoints](#endpoints)
-  - [UserProfile](#userprofile)
-  - [Listings](#listings)
-  - [SwapRequests](#swaprequests)
-- [File Upload](#file-upload)
-- [Using Postman](#using-postman)
-- [Troubleshooting](#troubleshooting)
-- [Admin Panel](#admin-panel)
-- [Contributing](#contributing)
-- [License](#license)
+### Authentication
+- `POST /api/auth/register/` - Register a new user
+  ```json
+  {
+    "username": "string",
+    "password": "string",
+    "password2": "string",
+    "email": "string",
+    "first_name": "string",
+    "last_name": "string"
+  }
+  ```
+- `POST /api/auth/token/` - Obtain JWT tokens
+  ```json
+  {
+    "username": "string",
+    "password": "string"
+  }
+  ```
+- `POST /api/auth/token/refresh/` - Refresh JWT token
+  ```json
+  {
+    "refresh": "string"
+  }
+  ```
+- `POST /api/auth/token/verify/` - Verify JWT token
+  ```json
+  {
+    "token": "string"
+  }
+  ```
 
----
+### User Profiles
+- `GET /api/profiles/` - List user profiles (authenticated)
+- `GET /api/profiles/{id}/` - Retrieve specific profile
+- `PUT /api/profiles/{id}/` - Update profile
+- `PATCH /api/profiles/{id}/` - Partially update profile
 
-## Setup
+### Listings
+- `GET /api/listings/` - List all items
+- `POST /api/listings/` - Create new listing
+- `GET /api/listings/{id}/` - Retrieve specific listing
+- `PUT /api/listings/{id}/` - Update listing
+- `DELETE /api/listings/{id}/` - Delete listing
 
-1. **Clone the repository:**
-   ```bash
-   git clone <your-repo-url>
-   cd techswap
-   ```
-2. **Create a virtual environment and activate it:**
-   ```bash
-   python -m venv venv
-   # On Windows:
-   venv\Scripts\activate
-   # On Mac/Linux:
-   source venv/bin/activate
-   ```
-3. **Install dependencies:**
+### Swap Requests
+- `GET /api/swap-requests/` - List swap requests
+- `POST /api/swap-requests/` - Create swap request
+- `GET /api/swap-requests/{id}/` - Retrieve specific request
+- `PUT /api/swap-requests/{id}/` - Update request
+- `DELETE /api/swap-requests/{id}/` - Delete request
+
+## Authentication Flow
+
+1. **Registration**
+   - User submits registration data
+   - System validates input and creates user account
+   - JWT tokens are generated and returned
+
+2. **Login**
+   - User submits credentials
+   - System validates and returns JWT tokens
+   - Access token is used for subsequent requests
+
+3. **Protected Routes**
+   - Include JWT token in Authorization header
+   - Format: `Authorization: Bearer <access_token>`
+
+4. **Token Refresh**
+   - Use refresh token to obtain new access token
+   - Refresh token is valid for 24 hours
+   - Access token is valid for 60 minutes
+
+## Security Features
+
+- Password hashing using Django's built-in password hashers
+- JWT token-based authentication
+- Rate limiting on API endpoints
+- Input validation and sanitization
+- File upload restrictions (size and type)
+
+## Setup and Installation
+
+1. Clone the repository
+2. Create a virtual environment
+3. Install dependencies:
    ```bash
    pip install -r requirements.txt
-   pip install Pillow
    ```
-4. **Configure your database settings in `techswap/settings.py` if needed.**
-5. **Run migrations:**
+4. Run migrations:
    ```bash
-   python manage.py makemigrations
    python manage.py migrate
    ```
-6. **Create a superuser (optional, for admin access):**
-   ```bash
-   python manage.py createsuperuser
-   ```
-7. **Start the development server:**
+5. Start the development server:
    ```bash
    python manage.py runserver
    ```
-8. **Access the API at** `http://localhost:8000/`
 
----
+## Environment Variables
+
+Create a `.env` file with the following variables:
+```
+SECRET_KEY=your_secret_key
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+```
+
+## Testing
+
+Run the test suite:
+```bash
+python manage.py test
+```
 
 ## Rate Limiting
 
-All API endpoints are rate limited to **10 requests per minute per IP address**. If you exceed this limit, you will receive a 429 Too Many Requests response with the following format:
-
-```json
-{
-    "error": "Rate limit exceeded",
-    "message": "Too many requests. Please try again in X seconds."
-}
-```
-
-### How to Test Rate Limiting
-
-#### Using Postman
-1. **Get a JWT Token**
-   - Send a `POST` request to `http://localhost:8000/api/token/` with body:
-     ```json
-     {
-         "username": "your_username",
-         "password": "your_password"
-     }
-     ```
-   - Copy the `access` token from the response.
-2. **Create a GET request** to `http://localhost:8000/api/user-profiles/`.
-   - Add headers:
-     - `Authorization: Bearer <your_token>`
-     - `Content-Type: application/json`
-3. **Save the request to a collection**.
-4. **Open the Collection Runner** (Runner button or Ctrl+R).
-   - Set Iterations to 11
-   - Set Delay to 100 ms
-   - Click Run
-5. **Observe the results**:
-   - The first 10 requests should return status 200
-   - The 11th request should return status 429 with the error message
-   - To view the error message, click on the 429 result in the Collection Runner and check the response body panel.
-
-#### Troubleshooting
-- If you never see a 429 error:
-  - Make sure you are not restarting the Django server during the test
-  - Ensure you are using the same IP address for all requests (localhost/127.0.0.1)
-  - If using Django's default cache, it may reset on server restart. For production, use Redis or Memcached.
-  - Try lowering the limit in the decorator for testing (e.g., `requests=5`)
-- If you see a 429 error, but not the expected JSON:
-  - Make sure the decorator uses `JsonResponse` as shown in the codebase
-  - In Postman, click the 429 request in the Collection Runner to view the full error message in the response body.
-
----
-
-## Authentication
-
-Use JWT for all endpoints.
-
-### 🔐 Login
-**POST** `/api/token/`
-
-**Body:**
-```json
-{
-  "username": "your_username",
-  "password": "your_password"
-}
-```
-
-**Response:**
-```json
-{
-  "access": "jwt-access-token",
-  "refresh": "jwt-refresh-token"
-}
-```
-
-**Header:**  
-`Authorization: Bearer <access_token>`
-
----
-
-## Endpoints
-
-### 👤 UserProfile
-
-#### List UserProfiles
-**GET** `/api/user-profiles/`
-
-**Response:**
-```json
-[
-  {
-    "id": 1,
-    "user": 1,
-    "bio": "Sample bio",
-    "location": "Sample location"
-  }
-]
-```
-
-#### Create UserProfile
-**POST** `/api/user-profiles/`
-
-**Body:**
-```json
-{
-  "user": 1,
-  "bio": "New bio",
-  "location": "New location"
-}
-```
-
-**Response:**
-```json
-{
-  "id": 2,
-  "user": 1,
-  "bio": "New bio",
-  "location": "New location"
-}
-```
-
-#### Retrieve UserProfile
-**GET** `/api/user-profiles/<id>/`
-
-**Response:**
-```json
-{
-  "id": 1,
-  "user": 1,
-  "bio": "Sample bio",
-  "location": "Sample location"
-}
-```
-
-#### Update UserProfile
-**PUT** `/api/user-profiles/<id>/`
-
-**Body:**
-```json
-{
-  "bio": "Updated bio",
-  "location": "Updated location"
-}
-```
-
-**Response:**
-```json
-{
-  "id": 1,
-  "user": 1,
-  "bio": "Updated bio",
-  "location": "Updated location"
-}
-```
-
-#### Delete UserProfile
-**DELETE** `/api/user-profiles/<id>/`
-
-**Response:** `204 No Content`
-
----
-
-### 📦 Listings
-
-#### List Listings
-**GET** `/api/listings/`
-
-**Response:**
-```json
-[
-  {
-    "id": 1,
-    "owner": 1,
-    "title": "Sample Listing",
-    "description": "Sample description",
-    "category": "Sample category",
-    "created_at": "2023-01-01T00:00:00Z"
-  }
-]
-```
-
-#### Create Listing (Sample via Postman)
-**POST** `/api/listings/`
-- **Headers:**
-  - `Authorization: Bearer <access_token>`
-  - `Content-Type: application/json`
-- **Body:**
-```json
-{
-  "owner": 1,
-  "title": "Sample Listing",
-  "description": "Brand new item for swap",
-  "category": "Electronics"
-}
-```
-
-**Response:**
-```json
-{
-  "id": 2,
-  "owner": 1,
-  "title": "Sample Listing",
-  "description": "Brand new item for swap",
-  "category": "Electronics",
-  "created_at": "2023-01-01T00:00:00Z"
-}
-```
-
-#### Retrieve Listing
-**GET** `/api/listings/<id>/`
-
-**Response:**
-```json
-{
-  "id": 1,
-  "owner": 1,
-  "title": "Sample Listing",
-  "description": "Sample description",
-  "category": "Sample category",
-  "created_at": "2023-01-01T00:00:00Z"
-}
-```
-
-#### Update Listing
-**PUT** `/api/listings/<id>/`
-
-**Body:**
-```json
-{
-  "title": "Updated Listing",
-  "description": "Updated description",
-  "category": "Updated category"
-}
-```
-
-**Response:**
-```json
-{
-  "id": 1,
-  "owner": 1,
-  "title": "Updated Listing",
-  "description": "Updated description",
-  "category": "Updated category",
-  "created_at": "2023-01-01T00:00:00Z"
-}
-```
-
-#### Delete Listing
-**DELETE** `/api/listings/<id>/`
-
-**Response:** `204 No Content`
-
----
-
-### 🔄 SwapRequests
-
-#### List SwapRequests
-**GET** `/api/swap-requests/`
-
-**Response:**
-```json
-[
-  {
-    "id": 1,
-    "listing": 1,
-    "requester": 1,
-    "status": "Pending",
-    "message": "Sample message",
-    "created_at": "2023-01-01T00:00:00Z"
-  }
-]
-```
-
-#### Create SwapRequest (Sample via Postman)
-**POST** `/api/swap-requests/`
-- **Headers:**
-  - `Authorization: Bearer <access_token>`
-  - `Content-Type: application/json`
-- **Body:**
-```json
-{
-  "listing": 1,
-  "requester": 1,
-  "status": "Pending",
-  "message": "Interested to swap!"
-}
-```
-
-**Response:**
-```json
-{
-  "id": 2,
-  "listing": 1,
-  "requester": 1,
-  "status": "Pending",
-  "message": "Interested to swap!",
-  "created_at": "2023-01-01T00:00:00Z"
-}
-```
-
-#### Retrieve SwapRequest
-**GET** `/api/swap-requests/<id>/`
-
-**Response:**
-```json
-{
-  "id": 1,
-  "listing": 1,
-  "requester": 1,
-  "status": "Pending",
-  "message": "Sample message",
-  "created_at": "2023-01-01T00:00:00Z"
-}
-```
-
-#### Update SwapRequest
-**PUT** `/api/swap-requests/<id>/`
-
-**Body:**
-```json
-{
-  "status": "Approved",
-  "message": "Updated message"
-}
-```
-
-**Response:**
-```json
-{
-  "id": 1,
-  "listing": 1,
-  "requester": 1,
-  "status": "Approved",
-  "message": "Updated message",
-  "created_at": "2023-01-01T00:00:00Z"
-}
-```
-
-#### Delete SwapRequest
-**DELETE** `/api/swap-requests/<id>/`
-
-**Response:** `204 No Content`
-
----
-
-## Using Postman
-
-1. **Get a JWT Token:**
-   - POST to `/api/token/` with your username and password.
-   - Copy the `access` token from the response.
-2. **Add Authorization Header:**
-   - In your request, add a header:
-     - `Authorization: Bearer <access_token>`
-3. **Set Content-Type:**
-   - `Content-Type: application/json`
-4. **Send your request!**
-
----
-
-## Troubleshooting
-
-- **401 Unauthorized:**
-  - Make sure you included the correct JWT token in the `Authorization` header.
-  - Generate a new token if expired.
-- **500 Internal Server Error:**
-  - Check if you have run migrations (`python manage.py makemigrations` and `python manage.py migrate`).
-  - Make sure your database is running and accessible.
-- **ProgrammingError: relation ... does not exist:**
-  - Run migrations to create the necessary tables.
-- **Empty list response:**
-  - This is normal if there is no data yet in the table.
-
----
-
-## Admin Panel
-- Visit [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/) to view and manage users, user profiles, listings, and swap requests.
-
----
-
-For more details, see the code and comments in each endpoint or contact the project maintainer.
-
-## File Upload
-
-The API supports profile photo uploads with the following specifications:
-- Maximum file size: 2MB
-- Allowed file types: JPEG, PNG, WebP
-- Images are automatically cropped to a 1:1 aspect ratio
-
-### Profile Photo Upload
-
-#### Update Profile with Photo
-**PUT** `/api/user-profiles/<id>/`
-
-**Headers:**
-- `Authorization: Bearer <access_token>`
-- `Content-Type: multipart/form-data`
-
-**Body:**
-```json
-{
-    "bio": "Updated bio",
-    "location": "Updated location",
-    "photo": <file>
-}
-```
-
-**Response:**
-```json
-{
-    "id": 1,
-    "user": 1,
-    "bio": "Updated bio",
-    "location": "Updated location",
-    "photo": "/media/profile_photos/photo.jpg"
-}
-```
-
-#### Create Profile with Photo
-**POST** `/api/user-profiles/`
-
-**Headers:**
-- `Authorization: Bearer <access_token>`
-- `Content-Type: multipart/form-data`
-
-**Body:**
-```json
-{
-    "user": 1,
-    "bio": "New bio",
-    "location": "New location",
-    "photo": <file>
-}
-```
-
-**Response:**
-```json
-{
-    "id": 2,
-    "user": 1,
-    "bio": "New bio",
-    "location": "New location",
-    "photo": "/media/profile_photos/photo.jpg"
-}
-```
+API endpoints are rate-limited to prevent abuse:
+- 10 requests per minute per user
+- Rate limit headers included in responses
 
 ## Contributing
 
-Contributions are welcome! Please fork the repository and submit a pull request. For major changes, open an issue first to discuss what you would like to change.
-
-1. Fork the repo
-2. Create your feature branch (`git checkout -b feature/YourFeature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin feature/YourFeature`)
-5. Open a pull request
-
----
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the LICENSE file for details.
