@@ -26,32 +26,9 @@ class UserRegistrationView(generics.CreateAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-
-        # Get user profile and photo URL
-        profile = UserProfile.objects.get(user=user)
-        photo_url = (
-            request.build_absolute_uri(profile.photo.url) if profile.photo else None
-        )
-
-        # Generate tokens
-        refresh = RefreshToken.for_user(user)
-
-        # Format user data for response
-        user_data = {
-            "username": user.username,
-            "email": user.email,
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "photo": photo_url,
-        }
-
+        serializer.save()
         return Response(
-            {
-                "user": user_data,
-                "refresh": str(refresh),
-                "access": str(refresh.access_token),
-            },
+            {"message": "Registration successful."},
             status=status.HTTP_201_CREATED,
         )
 
@@ -78,6 +55,9 @@ class ListingViewSet(viewsets.ModelViewSet):
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
 
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
 
 class SwapRequestViewSet(viewsets.ModelViewSet):
     queryset = SwapRequest.objects.all()
@@ -87,3 +67,6 @@ class SwapRequestViewSet(viewsets.ModelViewSet):
     @rate_limit(requests=10, window=60)  # 10 requests per minute
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
+
+    def perform_create(self, serializer):
+        serializer.save(requester=self.request.user)

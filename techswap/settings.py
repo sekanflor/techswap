@@ -63,7 +63,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'techswap_db',
         'USER': 'postgres',
-        'PASSWORD': 'Jian021504',
+        'PASSWORD': 'sekanflor1234',
         'HOST': 'localhost',
         'PORT': '5432',
     }

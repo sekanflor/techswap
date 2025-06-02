@@ -83,12 +83,26 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    email = serializers.CharField(source='user.email', read_only=True)
+    first_name = serializers.CharField(source='user.first_name', read_only=True)
+    last_name = serializers.CharField(source='user.last_name', read_only=True)
     photo = serializers.ImageField(required=False)
     user = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = UserProfile
-        fields = ["id", "user", "bio", "location", "photo"]
+        fields = [
+            "id",
+            "user",
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "bio",
+            "location",
+            "photo"
+        ]
         read_only_fields = ["id"]
 
     def validate_photo(self, value):
@@ -111,6 +125,8 @@ class ListingSerializer(serializers.ModelSerializer):
 
 
 class SwapRequestSerializer(serializers.ModelSerializer):
+    requester = serializers.PrimaryKeyRelatedField(read_only=True)
+
     class Meta:
         model = SwapRequest
         fields = "__all__"
